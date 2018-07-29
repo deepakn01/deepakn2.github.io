@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Divvy UserType by Tripduration</title>
+    <script src="http://d3js.org/d3.v3.min.js"></script>
+    <style>
+    
+      .axis text {
+        font-family: 'Open Sans', sans-serif;
+        font-size: 8pt;
+      }
+      .axis .label {
+        font-size: 10pt;
+      }
+
+      .axis path, .axis line {
+        fill: none;
+        stroke: #000;
+        shape-rendering: crispEdges;
+      }
+	  
+	  div.tooltip {	
+    position: absolute;			
+    text-align: center;			
+    width: 100px;					
+    height: 28px;					
+    padding: 2px;				
+    font: 12px sans-serif;		
+    background: lightsteelblue;	
+    border: 0px;		
+    border-radius: 8px;			
+    pointer-events: none;			
+}
+
+	  	/*HTML Horizonal Legend*/
+	  .usertype {
+		margin: 0 !important;
+	}
+	.key-dot {
+    display: inline-block;
+    height: 10px;
+    margin-right: .5em;
+    width: 10px;
+	}
+
+.cust { background: Blue ; Opacity: .4}
+.sub { background: Red; Opacity: .4}
+
+
+
+#legend{
+    overflow:hidden;
+}
+.legend {
+    float:left;
+    margin-right: 1em;
+}
+
+
+    </style>
+  </head>
+  <body>
+	  <div style="background-color:lightblue" style="position: absolute; width: 728px; height: 200px ; width=200px">
+  
+	<h3>Usertype Behavior Patterns - Analysis on Tripdurations</h3>
+	<p></p>
+  </div>
+  
+  <div style="position: absolute; top: 175px; left: 650px; width: 240px; background-color: azure; border-style: solid">
+	<h3></h3>
+	<p>Looking at the data for Tripduration, it is also clear that Customers tend to rent for a longer time in the warmer months, which directly contributes to the gross.
+	It is also interesting to note that the Subscribers Tripdurations has a very little variance with a median of around <strong>1600 - 1700 mins</strong> per rental, which is a little over a day.</p>
+  </div>
+  <div id="legend" style="position: absolute; top: 100px; left: 650px; width: 240px; border: black;">
+		<h3></h3>
+			<div class="legend"> <p class="usertype"><span class="key-dot cust"></span>Customer</p> </div>
+			<div class="legend"> <p class="usertype"><span class="key-dot sub"></span>Subscriber</p> </div>
+	  </div>
+  <svg width="600" height="120"></svg>
+  
+	<div style="position: absolute; top: 75px; left: 275px; width: 240px">
+	<br><br><br><br>
+	<button id="Customer">Customer</button>
+	<button id="Subscriber">Subscriber</button>
+	<button id="Both">Both</button>
+	</div>
+    <script>
+      var outerWidth = 600;
+      var outerHeight = 400;
+      var margin = { left: 100, top: 5, right: 5, bottom: 100 };
+      var rMin = 1; // "r" stands for radius
+      var rMax = 6;
+	  var parseDate = d3.time.format("%m/%d/%Y").parse;
+      var xColumn = "Rental Date";
+      var yColumn = "Tripduration";
+      <!--var rColumn = "sepal_width";-->
+      var colorColumn = "Usertype";
+	  
+	  var b1 = document.getElementById("Customer");
+	  var b2 = document.getElementById("Subscriber");
+	  var b3 = document.getElementById("Both");
+
+      var xAxisLabelText = "Rental Date";
+      var xAxisLabelOffset = 65;
+
+      var yAxisLabelText = "Tripduration (mins)";
+      var yAxisLabelOffset = 65;
+
+      var innerWidth  = outerWidth  - margin.left - margin.right;
+      var innerHeight = outerHeight - margin.top  - margin.bottom;
+
+      var svg = d3.select("body").append("svg")
+        .attr("width", outerWidth)
+        .attr("height", outerHeight);
+      var g = svg.append("g")
+        .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+      var xAxisG = g.append("g")
+        .attr("class", "x axis")
+        .attr("transform", "translate(0," + innerHeight + ")")
+      var xAxisLabel = xAxisG.append("text")
+        .style("text-anchor", "middle")
+        .attr("x", innerWidth / 2)
+        .attr("y", xAxisLabelOffset)
+        .attr("class", "label")
+        .text(xAxisLabelText);
+      var yAxisG = g.append("g")
+        .attr("class", "y axis");
+      var yAxisLabel = yAxisG.append("text")
+        .style("text-anchor", "middle")
+        .attr("transform", "translate(-" + yAxisLabelOffset + "," + (innerHeight/2) + ") rotate(-90)")
+        .attr("class", "label")
+        .text(yAxisLabelText);
+		
+		// Define the div for the tooltip
+		var div = d3.select("body").append("div")	
+			.attr("class", "tooltip")				
+			.style("opacity", 0);
+			
+      var xScale = d3.scale.linear().range([0, innerWidth]);
+      var yScale = d3.scale.linear().range([innerHeight, 0]);
+      var colorScale = d3.scale.category10();
+	  colorScale.range(["Blue","Red"]);
+
+      var xAxis = d3.svg.axis().scale(xScale).orient("bottom")
+        .ticks(11)
+        <!--.tickFormat(d3.format("s"))-->
+		.tickFormat(function(d) { return d3.time.format("%b-%d")(new Date(d)) })
+        .outerTickSize(0);
+      var yAxis = d3.svg.axis().scale(yScale).orient("left")
+        .ticks(10)
+        .tickFormat(d3.format("s"))
+        .outerTickSize(0);
+
+      function render(data){
+	    var fillCol;
+		
+		if (b1.active === "true")
+		{
+			console.log("Customer button clicked"+b1.active);
+			data = data.filter( function(d) { return d.Usertype === "Customer" });
+			fillCol = "Blue"
+		}
+		else if (b2.active === "true")
+		{
+			console.log("Subscriber button clicked");
+			data = data.filter( function(d) { return d.Usertype === "Subscriber" });
+			fillCol = "Red"
+		}
+		else
+		{data = data;}
+        xScale.domain(d3.extent(data, function (d){ return parseDate(d[xColumn]); }));
+        yScale.domain(d3.extent(data, function (d){ return +d[yColumn]; }));
+        <!--rScale.domain(d3.extent(data, function (d){ return d[rColumn]; }));-->
+        xAxisG.call(xAxis)
+			.style("font-size","10px");
+        yAxisG.call(yAxis)
+			.style("font-size","10px");
+
+        var circles = g.selectAll("circle").data(data);
+        circles.enter().append("circle");
+        circles
+          .attr("r",2)
+          .attr("fill",    function (d){ return   colorScale(d[colorColumn]); })
+		  .style("opacity", .4)
+		  .attr("cx",      function (d){ return       xScale(parseDate(d[xColumn]));     })
+          .attr("cy",      function (d){ return       yScale(d[yColumn]);     })
+		  .on("mouseover", function(d) {		
+            div.transition()		
+                .duration(200)		
+                .style("opacity", .9);		
+            div	.html("Date: " + d[xColumn] + "<br/>"  + "Duration: " + d[yColumn])	
+                .style("left", (d3.event.pageX) + "px")		
+                .style("top", (d3.event.pageY - 28) + "px");	
+            })					
+			.on("mouseout", function(d) {		
+            div.transition()		
+                .duration(500)		
+                .style("opacity", 0);	
+        });
+
+        circles.exit().remove();
+      }
+
+      function type(d){
+        
+        return d;
+      }
+
+      d3.csv("Tripduration.csv", type, render);
+	  
+	b1.onclick = function Customer(){
+			b1.active = "true";
+			b2.active = "false";
+			b3.active = "false";
+			d3.csv("Tripduration.csv", type, render);
+			b1.style.background = "green";
+			b2.style.background = "";
+			b3.style.background = "";
+			
+			}
+			
+	  b2.onclick = function Subscriber(){
+			b1.active = "false";
+			b2.active = "true";
+			b3.active = "false";
+			d3.csv("Tripduration.csv", type, render);
+			b1.style.background = "";
+			b2.style.background = "green";
+			b3.style.background = "";
+			
+			}
+			
+	  b3.onclick = function Both(){
+			b1.active = "false";
+			b2.active = "false";
+			b3.active = "true";
+			d3.csv("Tripduration.csv", type, render);
+			b1.style.background = "";
+			b2.style.background = "";
+			b3.style.background = "green";
+			
+			}
+    </script>
+	<div style="position: absolute; top: 400px; left: 750px; width: 100px; background-color: lightGreen;">
+	<a href="/stackbar.html" style="background-color:lightGreen" style="font-size:15pt">Prev</a>&nbsp&nbsp&nbsp&nbsp
+	<a href="/map.html" style="background-color:lightGreen" style="font-size:15pt">Next</a>
+	</div>
+  </body>
+</html>

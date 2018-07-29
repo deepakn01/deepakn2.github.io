@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<head>
+	<title>Divvy UserType by Tripduration</title>
+	    <style>
+    
+      .axis text {
+        font-family: 'Open Sans', sans-serif;
+        font-size: 8pt;
+      }
+      .axis .label {
+        font-size: 10pt;
+      }
+
+      .axis path, .axis line {
+        fill: none;
+        stroke: #000;
+        shape-rendering: crispEdges;
+      }
+	  
+	  div.tooltip {	
+    position: absolute;			
+    text-align: center;			
+    width: 100px;					
+    height: 28px;					
+    padding: 2px;				
+    font: 12px sans-serif;		
+    background: lightsteelblue;	
+    border: 0px;		
+    border-radius: 8px;			
+    pointer-events: none;			
+	}
+
+	  	/*HTML Horizonal Legend*/
+	  .usertype {
+		margin: 0 !important;
+	}
+	.key-dot {
+    display: inline-block;
+    height: 10px;
+    margin-right: .5em;
+    width: 10px;
+	}
+
+	.cust { background: Blue ; Opacity: .4}
+	.sub { background: Red; Opacity: .4}
+
+
+
+	#legend{
+		overflow:hidden;
+	}
+	.legend {
+		float:left;
+		margin-right: 1em;
+	}
+
+
+    </style>
+</head>
+<body>
+<div id="viz3" width="900" height="500"></div>
+<script src="http://d3js.org/d3.v3.min.js"></script>
+<script src="http://d3js.org/d3.geo.tile.v0.min.js"></script>
+<script src="d3.mapzoom.js"></script>
+<div style="background-color:lightblue" style="position: absolute; width: 728px; height: 200px ; width=200px">
+  
+	<h3>Usertype Behavior Patterns - By Rental Locations</h3>
+	<p></p>
+  </div>
+  
+  <div style="position: absolute; top: 200px; left: 700px; width: 240px; background-color: azure;border-style: solid">
+	<h3></h3>
+	<p>This is a very interesting data to note, as you can see, there is a heavy demand of rentals by the customers along the <strong> lake shore</strong> in Chicago.
+	This could be attributed to the beautiful lake shore bike trails and other tourist attractions along the lake shore.
+	The rest of the city is being dominated by more Susbcribers than Customers.</p>
+  </div>
+  <div id="legend" style="position: absolute; top: 100px; left: 700px; width: 240px; border: black;">
+		<h3></h3>
+			<div class="legend"> <p class="usertype"><span class="key-dot cust"></span>Customer</p> </div>
+			<div class="legend"> <p class="usertype"><span class="key-dot sub"></span>Subscriber</p> </div>
+	  </div>
+  <svg width="600" height="120"></svg>
+  
+	<div style="position: absolute; top: 75px; left: 250px; width: 240px">
+	<br><br><br>
+	<button id="Customer">Customer</button>
+	<button id="Subscriber">Subscriber</button>
+	<button id="Both">Both</button>
+	</div>
+
+<script>
+	/*var width = 900,
+		height = 500;
+
+	var center = [-87.6237,41.9009], scale = 150000;
+
+	
+	
+	var mapzoom = d3.mapzoom()
+		.center(center)
+		.scale(scale)
+		
+	var svg = d3.select("body").append("svg")
+			
+			.attr("width", width)
+			.attr("height", height)
+			.call(mapzoom);
+
+	var frame = svg.append("g")
+	mapzoom.addTileLayer(frame, "tile.openstreetmap.fr/hot/", "ab");
+
+	var projection = mapzoom.projection*/
+	
+	var b1 = document.getElementById("Customer");
+	var b2 = document.getElementById("Subscriber");
+	var b3 = document.getElementById("Both");
+	
+	var xColumn = "Rental Date";
+    var yColumn = "Tripduration";
+    var colorColumn = "Usertype";
+	
+function render(data){
+	var width = 600,
+    height = 400;
+	x = 0,
+	y = 120;
+	
+
+	var center = [-87.6237,41.9009], scale = 150000;
+	
+	var mapzoom = d3.mapzoom()
+		.center(center)
+		.scale(scale)
+		
+	var svg = d3.select("body").append("svg")
+			
+			.attr("width", width)
+			.attr("height", height)
+			.call(mapzoom);
+
+	var frame = svg.append("g")
+	mapzoom.addTileLayer(frame, "tile.openstreetmap.fr/hot/", "ab");
+
+	var projection = mapzoom.projection()
+	
+	var colorScale = d3.scale.category10();
+	colorScale.range(["Blue","Red"]);
+
+	var colorScale = d3.scale.category10();
+	colorScale.range(["Red","Blue"]);
+		
+
+	
+	    var fillCol;
+		var circles;
+		var g = svg.append("g");
+		
+		 var circles = g.selectAll("circle").data(data);
+        circles.enter().append("circle")
+			.attr("r",function(d) { return (+parseFloat(d["Number of Records"].replace(/,/g, ''))/10000)})
+			.attr("fill",    function (d){ return   colorScale(d[colorColumn]); })
+			.style("opacity", .4);
+		
+		
+	
+		circles
+			.append("title")
+			.text(function(d) { return d["From Station Name"] + '\n' + d["Number of Records"] });
+			
+		mapzoom.addLayer(function() {
+        circles
+            .attr("transform", function(d) { return "translate(" + projection([d.Longitude,d.Latitude]) + ")" })
+			});
+		
+        circles.exit().remove();
+      }
+
+      function type(d){
+        
+        return d;
+      }
+
+      d3.csv("StationData.csv", type, render);
+	  
+	  b1.onclick = function Customer(){
+			d3.select("svg").remove();
+			d3.select("svg").remove();
+			b1.active = "true";
+			b2.active = "false";
+			b3.active = "false";
+			d3.csv("StationData.csv", type, render_cust);
+			b1.style.background = "green";
+			b2.style.background = "";
+			b3.style.background = "";
+			d3.select("svg").remove();
+			
+			
+			}
+			
+	  b2.onclick = function Subscriber(){
+			d3.select("svg").remove();
+			b1.active = "false";
+			b2.active = "true";
+			b3.active = "false";
+			d3.csv("StationData.csv", type, render_sub);
+			b1.style.background = "";
+			b2.style.background = "green";
+			b3.style.background = "";
+			d3.select("svg").remove();
+			}
+			
+	  b3.onclick = function Both(){
+			d3.select("svg").remove();
+			b1.active = "false";
+			b2.active = "false";
+			b3.active = "true";
+			d3.csv("StationData.csv", type, render);
+			b1.style.background = "";
+			b2.style.background = "";
+			b3.style.background = "green";
+			d3.select("svg").remove();
+			
+			}
+	
+function render_cust(data){
+
+	var width = 600,
+    height = 400;
+	x = 0,
+	y = 120;
+	
+
+	
+	var center = [-87.6237,41.9009], scale = 150000;
+	
+	var mapzoom = d3.mapzoom()
+		.center(center)
+		.scale(scale)
+		
+	var svg = d3.select("body").append("svg")
+			
+			.attr("width", width)
+			.attr("height", height)
+			.call(mapzoom);
+
+	var frame = svg.append("g")
+	mapzoom.addTileLayer(frame, "tile.openstreetmap.fr/hot/", "ab");
+
+	var projection = mapzoom.projection()
+	
+	var colorScale = d3.scale.category10();
+	colorScale.range(["Blue"]);
+		
+
+	
+	    var fillCol;
+		var circles;
+		var g = svg.append("g");
+		
+		 var circles = g.selectAll("circle").data(data);
+        circles.enter().append("circle")
+			.filter( function(d) { return d.Usertype === "Customer" })
+			.attr("r",function(d) { return (+parseFloat(d["Number of Records"].replace(/,/g, ''))/10000)})
+			.attr("fill",    function (d){ return   colorScale(d[colorColumn]); })
+			.style("opacity", .4);
+		
+		
+	
+		circles
+			.append("title")
+			.text(function(d) { return d["From Station Name"] + '\n' + d["Number of Records"] });
+			
+		mapzoom.addLayer(function() {
+        circles
+            .attr("transform", function(d) { return "translate(" + projection([d.Longitude,d.Latitude]) + ")" })
+			});
+		
+        circles.exit().remove();
+      }
+     
+	 function render_sub(data){
+
+	var width = 600,
+    height = 400;
+	x = 0,
+	y = 120;
+	
+	
+	var center = [-87.6237,41.9009], scale = 150000;
+	
+	var mapzoom = d3.mapzoom()
+		.center(center)
+		.scale(scale)
+		
+	var svg = d3.select("body").append("svg")
+			
+			.attr("width", width)
+			.attr("height", height)
+			.call(mapzoom);
+
+	var frame = svg.append("g")
+	mapzoom.addTileLayer(frame, "tile.openstreetmap.fr/hot/", "ab");
+
+	var projection = mapzoom.projection()
+	
+	var colorScale = d3.scale.category10();
+	colorScale.range(["Red"]);
+		
+
+	
+	    var fillCol;
+		var circles;
+		var g = svg.append("g");
+		
+		 var circles = g.selectAll("circle").data(data);
+        circles.enter().append("circle")
+			.filter( function(d) { return d.Usertype === "Subscriber" })
+			.attr("r",function(d) { return (+parseFloat(d["Number of Records"].replace(/,/g, ''))/10000)})
+			.attr("fill",    function (d){ return   colorScale(d[colorColumn]); })
+			.style("opacity", .4);
+		
+		
+	
+		circles
+			.append("title")
+			.text(function(d) { return d["From Station Name"] + '\n' + d["Number of Records"] });
+			
+		mapzoom.addLayer(function() {
+        circles
+            .attr("transform", function(d) { return "translate(" + projection([d.Longitude,d.Latitude]) + ")" })
+			});
+		
+        circles.exit().remove();
+      }
+
+/* Include attribution: 
+d3.select("body")
+    .append("div")
+      .text("Map data and imagery (c) Open Street Map"); */
+
+	  
+
+
+</script>
+<!--
+<div id="legnd" width="50" height="50" >
+<script>
+	/* legend */
+	var x = 10, y = 520;
+	var legend = d3.select("body").append("svg")
+		.attr("class","legend")
+		.selectAll("g")
+		.data(["Customers","Subscribers"])
+		.enter().append("g");
+
+	legend.append("circle")
+		.attr("transform", "translate(" + x + "," + y + ")")
+		.attr("cy", function (d, i){return (i+1) * 30 ;})
+		.attr("cx", 30)
+		.attr("r",10)
+		.attr('fill',function (d){return (d === "Subscribers")? 'Red' : 'Blue';})
+		.attr("opacity", .4);
+		
+	legend.append("text")
+		.attr("y", function(d, i) {return 5+(i+1) * 30 ;})
+		.attr("x", 45)
+		.text(function(d) {return d;});
+		
+
+</script>-->
+<br><br>
+<div style="position: absolute; top: 450px; left: 725px; width: 100px; background-color: lightGreen;">
+<a href="/index.html" style="background-color:lightGreen" style="font-size:15pt">Back to Start</a>
+</div>
+<body>
+
+</html>

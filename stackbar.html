@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Divvy UserType by # of Rentals</title>
+    <script src="http://d3js.org/d3.v3.min.js"></script>
+    <style>
+    
+      .axis text {
+        font-family: 'Open Sans', sans-serif;
+        font-size: 8pt;
+      }
+      .axis .label {
+        font-size: 10pt;
+      }
+
+      .axis path, .axis line {
+        fill: none;
+        stroke: #000;
+        shape-rendering: crispEdges;
+      }
+	  
+	  	/*HTML Horizonal Legend*/
+	  .usertype {
+		margin: 0 !important;
+	}
+	.key-dot {
+    display: inline-block;
+    height: 10px;
+    margin-right: .5em;
+    width: 10px;
+	}
+
+.cust { background: Blue ; Opacity: .4}
+.sub { background: Red; Opacity: .4}
+
+
+
+#legend{
+    overflow:hidden;
+}
+.legend {
+    float:left;
+    margin-right: 1em;
+}
+
+
+    </style>
+  </head>
+  <body>
+  <div style="background-color:lightblue" style="position: absolute; width: 728px; height: 200px ; width=200px">
+  
+	<h3>Usertype Behavior Patterns - Month by Month Analysis</h3>
+	<p></p>
+  </div>
+  
+  <div style="position: absolute; top: 175px; left: 600px; width: 240px; background-color: azure; border-style: solid">
+	<h3></h3>
+	<p>In this monthly analysis on the number of rentals for <strong>Customers & Subscribers</strong>, it is very evident that the Customers tend to use the services
+		during the warmer months more, and hardly use it in the winter months, but is the number of rentals proportionate to the duration of each rentals? 
+		Please continue to the next page to know more.</p>
+  </div>
+	   <div id="legend" style="position: absolute; top: 100px; left: 600px; width: 240px; border: black;">
+		<h3></h3>
+			<div class="legend"> <p class="usertype"><span class="key-dot cust"></span>Customer</p> </div>
+			<div class="legend"> <p class="usertype"><span class="key-dot sub"></span>Subscriber</p> </div>
+	  </div>
+  <svg width="600" height="120"></svg>
+  
+	<div style="position: absolute; top: 75px; left: 250px; width: 240px">
+	<br><br><br>
+	<button id="Customer" >Customer</button>
+	<button id="Subscriber">Subscriber</button>
+	<button id="Both">Both</button>
+	</div>
+    <script>
+      var outerWidth = 500;
+      var outerHeight = 250;
+      var margin = { left: 90, top: 30, right: 30, bottom: 40 };
+      var barPadding = 0.2;
+	
+		var b1 = document.getElementById("Customer");
+		var b2 = document.getElementById("Subscriber");
+		var b3 = document.getElementById("Both");
+
+	  var xColumn = "xVals";
+      var yColumn = "Number of Rentals";
+      var colorColumn = "Usertype";
+      var layerColumn = colorColumn;
+	  
+      var innerWidth  = outerWidth  - margin.left - margin.right;
+      var innerHeight = outerHeight - margin.top  - margin.bottom;
+	  
+	
+	  var yAxisLabelText = "# of Rentals";
+      var yAxisLabelOffset = 65;
+
+      var svg = d3.select("body").append("svg")
+        .attr("width",  outerWidth)
+        .attr("height", outerHeight);
+      var g = svg.append("g")
+        .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+      var xAxisG = g.append("g")
+        .attr("class", "x axis")
+        .attr("transform", "translate(0," + innerHeight + ")");
+     var yAxisG = g.append("g")
+        yAxisG.attr("class", "y axis")
+		.append("text")
+        .style("text-anchor", "middle")
+        .attr("transform", "translate(-" + yAxisLabelOffset + "," + (innerHeight/2) + ") rotate(-90)")
+        .attr("class", "label")
+        .text(yAxisLabelText);
+		
+      var xScale = d3.scale.ordinal().rangeBands([0, innerWidth], barPadding);
+      var yScale = d3.scale.linear().range([innerHeight, 0]);
+      var colorScale = d3.scale.category10();
+	  colorScale.range(["Blue","Red"]);
+
+	  
+      // Use a modified SI formatter that uses "B" for Billion.
+      var siFormat = d3.format("s");
+      var customTickFormat = function (d){
+        return siFormat(d).replace("G", "B");
+      };
+
+	  
+      var xAxis = d3.svg.axis().scale(xScale).orient("bottom")
+        .outerTickSize(0);
+      var yAxis = d3.svg.axis().scale(yScale).orient("left")
+        .ticks(5)
+        .tickFormat(customTickFormat)
+        .outerTickSize(0);
+
+      function render(data){
+	  
+		if (b1.active === "true")
+		{
+			console.log("Customer button clicked"+b1.active);
+			data = data.filter( function(d) { return d.Usertype === "Customer" });
+			fillCol = "Blue"
+			colorScale.range(["Blue","Red"]);
+		}
+		else if (b2.active === "true")
+		{
+			console.log("Subscriber button clicked");
+			data = data.filter( function(d) { return d.Usertype === "Subscriber" });
+			fillCol = "Red"
+			colorScale.range(["Red","Blue"]);
+		}
+		else
+		{data = data}
+		
+        var nested = d3.nest()
+          .key(function (d){ return d[layerColumn]; })
+          .entries(data)
+		
+		
+        var stack = d3.layout.stack()
+          .y(function (d){ return +d[yColumn]; })
+          .values(function (d){ return d.values; });
+
+        var layers = stack(nested);
+		
+        xScale.domain(layers[0].values.map(function (d){
+          return d[xColumn];
+        }));
+
+        yScale.domain([
+          0,
+          d3.max(layers, function (layer){
+            return d3.max(layer.values, function (d){
+              return d.y0 + d.y;
+            });
+          })
+        ]);
+		
+        colorScale.domain(layers.map(function (layer){
+          return layer.key;
+		   
+        }));
+
+        xAxisG.call(xAxis)
+		  .selectAll("text")  
+          .attr("dx", "-.8em")
+          .attr("dy", "1em")
+          .attr("transform", "rotate(-20)" );
+        yAxisG.call(yAxis);
+		
+        var layerGroups = g.selectAll(".layer").data(layers);
+        layerGroups.enter().append("g").attr("class", "layer");
+        layerGroups.exit().remove();
+        layerGroups.style("fill", function (d){
+          return colorScale(d.key);
+        });
+		
+        var bars = layerGroups.selectAll("rect").data(function (d){
+          return d.values;
+        });
+		
+		
+        bars.enter().append("rect")
+        bars.exit().remove();
+        bars
+          .attr("x", function (d){ return xScale(d[xColumn]); })
+          .attr("y", function (d){ return yScale(d.y0 + d.y); })
+          .attr("width", xScale.rangeBand())
+          .attr("height", 0)
+		  .style("opacity", .4)
+		  .transition()
+			.ease("linear")
+			.duration(4000)
+			.attr("height", function (d){ return innerHeight - yScale(d.y); });
+		  
+		
+      }
+
+      function type(d){
+		d["Number of Rentals"] = +d["Number of Rentals"]; 
+		return d; 
+      }
+
+	  d3.csv("UsertypeByMnth.csv", type, render);
+      
+	  b1.onclick = function Customer(){
+			b1.active = "true";
+			b2.active = "false";
+			b3.active = "false";
+			d3.csv("UsertypeByMnth.csv", type, render);
+			b1.style.background = "green";
+			b2.style.background = "";
+			b3.style.background = "";
+			
+			
+			}
+			
+	  b2.onclick = function Subscriber(){
+			b1.active = "false";
+			b2.active = "true";
+			b3.active = "false";
+			d3.csv("UsertypeByMnth.csv", type, render);
+			b1.style.background = "";
+			b2.style.background = "green";
+			b3.style.background = "";
+			}
+			
+	  b3.onclick = function Both(){
+			b1.active = "false";
+			b2.active = "false";
+			b3.active = "true";
+			d3.csv("UsertypeByMnth.csv", type, render);
+			b2.style.background = "";
+			b1.style.background = "";
+			b3.style.background = "green";
+			}
+    </script>
+	<div style="position: absolute; top: 400px; left: 650px; width: 150px; background-color: lightGreen;">
+	<a href="/index.html" style="background-color:lightGreen" style="font-size:15pt">Back to Start</a> &nbsp&nbsp&nbsp&nbsp
+	<a href="/scatterplot.html" style="background-color:lightGreen">Next</a>
+	</div>
+  </body>
+</html>

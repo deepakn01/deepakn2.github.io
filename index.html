@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<head>
+	<title>Divvy UserType by Tripduration</title>
+	    <style>
+    
+      .axis text {
+        font-family: 'Open Sans', sans-serif;
+        font-size: 8pt;
+      }
+      .axis .label {
+        font-size: 10pt;
+      }
+
+      .axis path, .axis line {
+        fill: none;
+        stroke: #000;
+        shape-rendering: crispEdges;
+      }
+	  
+	  div.tooltip {	
+    position: absolute;			
+    text-align: center;			
+    width: 100px;					
+    height: 28px;					
+    padding: 2px;				
+    font: 12px sans-serif;		
+    background: lightsteelblue;	
+    border: 0px;		
+    border-radius: 8px;			
+    pointer-events: none;			
+	}
+
+	  	/*HTML Horizonal Legend*/
+	  .usertype {
+		margin: 0 !important;
+	}
+	.key-dot {
+    display: inline-block;
+    height: 10px;
+    margin-right: .5em;
+    width: 10px;
+	}
+
+	.cust { background: Blue ; Opacity: .4}
+	.sub { background: Red; Opacity: .4}
+
+
+
+	#legend{
+		overflow:hidden;
+	}
+	.legend {
+		float:left;
+		margin-right: 1em;
+	}
+
+
+    </style>
+</head>
+<body>
+	<div style="position: absolute; top: 5px; left: 5px; width: 1000px; height: 400px; background-color: azure; border-style: solid">
+	<h3>Chicago Divvy Bikes - Usertype Behavior Patterns</h3>
+	<p><strong>About the Visualization:</strong>
+	&nbsp&nbsp&nbsp&nbsp In this visualization, I have used the interactive slide show form of the hybrid structure visualization to narrate the behavior patterns of the Chicago Divvy Bikes 
+Customers and Subscribers in the year 2017, using the Divvy bike data from the below link.
+
+<br><strong>Datasource : </strong><br>
+	&nbsp&nbsp&nbsp&nbsphttps://www.divvybikes.com/system-data
+<br>
+<strong>Elements:</strong><br>
+1) <strong>Scenes :-</strong> Each page in the visualization is made as a scene. The charts for the scenes are carefully chosen, in such a way 
+to see how best to display the data and to easily convey the message intended to be told and what visualization would be best for each scene.
+
+<br>2) <strong>Annotations:-</strong> Each scene is added with the proper Axes, labels, legends, tooltips and annotations to aid the viewer. I have made them consistent across each scenes.
+The annotations are not being carried over, they are cleared off when moving to the new scene.<br>
+
+3) <strong>Parameters:-</strong> I have used Customers & Subscribers (the categorical values of Usertype dimension) to aid the viewer to filter the data in each scenes.
+I have also added the flexibility to see them both together as well, so that the viewer will loose the overview and reference.
+
+<br>4) <strong>Triggers:-</strong> I have used hyperlinks to aid the user to move forward and backward in his analysis. They are highlighted appropriately so the user is able to see them.
+<br>
+
+
+<strong>Citation :</strong> 
+	<br>I have referenced the below links to get some inspiration on building my project.<br>
+
+- Introduction to D3.js by Curran Kelleher
+http://curran.github.io/screencasts/introToD3/examples/viewer/#/
+<br>
+- Chicago Map (D3 mapzoom: Senior centers in Chicago)
+http://bl.ocks.org/sdjacobs/9ce5fadce234497dc592 <br>
+
+<strong><center> Please click "Continue" to move forward! Thank you!!</center> </strong></p>
+	</div>
+	
+	<div style="position: absolute; top: 410px; left: 500px; width: 50px; background-color: lightGreen;">
+	<a href="/stackbar.html" style="background-color:lightGreen">Continue</a>
+	</div>
+</body>
+</html>
